@@ -109,7 +109,8 @@ def _particle_net_base(points, features=None, mask=None, setting=None, name='par
                 x = keras.layers.Dense(units, activation='relu')(x)
                 if drop_rate is not None and drop_rate > 0:
                     x = keras.layers.Dropout(drop_rate)(x)
-            out = keras.layers.Dense(setting.num_class, activation='softmax')(x)
+            #out = keras.layers.Dense(setting.num_class, activation='softmax')(x)
+            out = keras.layers.Dense(1, activation='sigmoid')(x)
             return out  # (N, num_classes)
         else:
             return pool

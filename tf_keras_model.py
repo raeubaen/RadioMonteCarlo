@@ -166,8 +166,9 @@ def get_particle_net_lite(num_classes, input_shapes):
     setting.num_class = num_classes
     # conv_params: list of tuple in the format (K, (C1, C2, C3))
     setting.conv_params = [
-        (7, (32, 32, 32)), # era 7 e 32
-        (7, (64, 64, 64)), # era 7 e 64
+        (3, (16, 16, 16)), # era 7 e 32
+        (3, (32, 32, 32)), # era 7 e 64
+        (3, (64, 64, 64)), # non c'era
         ]
     # conv_pooling: 'average' or 'max'
     setting.conv_pooling = 'average'

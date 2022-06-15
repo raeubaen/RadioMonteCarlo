@@ -172,7 +172,7 @@ def get_particle_net_lite(num_classes, input_shapes):
     # conv_pooling: 'average' or 'max'
     setting.conv_pooling = 'average'
     # fc_params: list of tuples in the format (C, drop_rate)
-    setting.fc_params = [(128, 0.1)]
+    setting.fc_params = [(64, 0.1)]   # originariamente era 128
     setting.num_points = input_shapes['points'][0]
 
     points = keras.Input(name='points', shape=input_shapes['points'])

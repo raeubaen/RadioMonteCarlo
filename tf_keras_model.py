@@ -25,7 +25,10 @@ def knn(num_points, k, topk_indices, features):
 
 
 def edge_conv(points, features, num_points, K, channels, with_bn=True, activation='relu', pooling='average', name='edgeconv'):
-    """EdgeConv
+
+
+    '''
+    EdgeConv
     Args:
         K: int, number of neighbors
         in_channels: # of input channels
@@ -36,7 +39,8 @@ def edge_conv(points, features, num_points, K, channels, with_bn=True, activatio
         features: (N, P, C_0)
     Returns:
         transformed points: (N, P, C_out), C_out = channels[-1]
-    """
+    '''
+
 
     with tf.name_scope('edgeconv'):
 
@@ -81,6 +85,7 @@ def _particle_net_base(points, features=None, mask=None, summary=None, setting=N
     # points : (N, P, C_coord)
     # features:  (N, P, C_features), optional
     # mask: (N, P, 1), optinal
+    # N is the batch_size # no need to specificy it in input_shapes
 
     with tf.name_scope(name):
         if features is None:
@@ -110,9 +115,12 @@ def _particle_net_base(points, features=None, mask=None, summary=None, setting=N
                 x = keras.layers.Dense(units, activation='relu')(x)
                 if drop_rate is not None and drop_rate > 0:
                     x = keras.layers.Dropout(drop_rate)(x)
+
+            # it was: # -----------------------------------------------------------
             #out = keras.layers.Dense(setting.num_class, activation='softmax')(x)
             out = keras.layers.Dense(1, activation='sigmoid')(x)
-            return out  # (N, num_classes)
+
+            return out  # (N, 1)
         else:
             return pool
 
@@ -121,34 +129,58 @@ class _DotDict:
     pass
 
 
-def get_particle_net_lite_custom(num_classes, input_shapes):
-    r"""ParticleNet-Lite model from `"ParticleNet: Jet Tagging via Particle Clouds"
+def get_particle_net_lite_custom(input_shapes):
+
+
+    '''
+    ParticleNet-Lite model from `"ParticleNet: Jet Tagging via Particle Clouds"
     <https://arxiv.org/abs/1902.08570>`_ paper.
     Parameters
     ----------
-    num_classes : int
-        Number of output classes.
     input_shapes : dict
         The shapes of each input (`points`, `features`, `mask`).
-    """
+    '''
+
+
     setting = _DotDict()
-    setting.num_class = num_classes
+
     # conv_params: list of tuple in the format (K, (C1, C2, C3))
     setting.conv_params = [
-        (3, (16, 16, 16)), # era 7 e 32
-        (3, (32, 32, 32)), # era 7 e 64
+        (3, (16, 16, 16)), # it was 7 and 32 # ------------------------------------
+        (3, (32, 32, 32)), #        7 and 64 # ------------------------------------
         ]
+
     # conv_pooling: 'average' or 'max'
     setting.conv_pooling = 'average'
+
     # fc_params: list of tuples in the format (C, drop_rate)
-    setting.fc_params = [(64, 0.2)]   # originariamente era 128
+    setting.fc_params = [(64, 0.2)]   # it was 128 and 0.1 # ----------------------
     setting.num_points = input_shapes['points'][0]
 
-    points = keras.Input(name='points', shape=input_shapes['points'])
-    features = keras.Input(name='features', shape=input_shapes['features']) if 'features' in input_shapes else None
-    mask = keras.Input(name='mask', shape=input_shapes['mask']) if 'mask' in input_shapes else None
-    summary = keras.Input(name='summary', shape=(4))
 
-    outputs = _particle_net_base(points, features, mask, summary, setting, name='ParticleNet')
 
-    return keras.Model(inputs=[points, features, mask, summary], outputs=outputs, name='ParticleNet')
+    points = keras.Input(
+      name='points', shape=input_shapes['points']
+    )
+
+    features = keras.Input(
+      name='features', shape=input_shapes['features']
+    ) if 'features' in input_shapes else None
+
+    mask = keras.Input(
+      name='mask', shape=input_shapes['mask']
+    ) if 'mask' in input_shapes else None
+
+    summary = keras.Input(name='summary', shape=(4)) # it was not present # -------
+
+
+    outputs = _particle_net_base(
+      points, features, mask, summary, setting, name='ParticleNet'
+    )
+
+
+    return keras.Model(
+      inputs=[points, features, mask, summary],
+      outputs=outputs,
+      name='ParticleNet'
+    )

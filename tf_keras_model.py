@@ -103,7 +103,7 @@ def _particle_net_base(points, features=None, mask=None, summary=None, setting=N
         pool = tf.reduce_mean(fts, axis=1)  # (N, C)
 
         if setting.fc_params is not None:
-            x = tf.concat((pool, summary), 0)
+            x = tf.concat((pool, summary), -1)
 
             for layer_idx, layer_param in enumerate(setting.fc_params):
                 units, drop_rate = layer_param

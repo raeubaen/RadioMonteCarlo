@@ -59,7 +59,7 @@ def edge_conv(points, features, num_points, K, channels, with_bn=True, activatio
             if activation:
                 x = keras.layers.Activation(activation, name='%s_act%d' % (name, idx))(x)
 
-        if pooling == 'max':
+        if pooling == 'average':
             fts = tf.reduce_max(x, axis=2)  # (N, P, C')
         else:
             fts = tf.reduce_mean(x, axis=2)  # (N, P, C')
@@ -121,39 +121,7 @@ class _DotDict:
     pass
 
 
-def get_particle_net(num_classes, input_shapes):
-    r"""ParticleNet model from `"ParticleNet: Jet Tagging via Particle Clouds"
-    <https://arxiv.org/abs/1902.08570>`_ paper.
-    Parameters
-    ----------
-    num_classes : int
-        Number of output classes.
-    input_shapes : dict
-        The shapes of each input (`points`, `features`, `mask`).
-    """
-    setting = _DotDict()
-    setting.num_class = num_classes
-    # conv_params: list of tuple in the format (K, (C1, C2, C3))
-    setting.conv_params = [
-        (16, (64, 64, 64)),
-        (16, (128, 128, 128)),
-        (16, (256, 256, 256)),
-        ]
-    # conv_pooling: 'average' or 'max'
-    setting.conv_pooling = 'average'
-    # fc_params: list of tuples in the format (C, drop_rate)
-    setting.fc_params = [(256, 0.1)]
-    setting.num_points = input_shapes['points'][0]
-
-    points = keras.Input(name='points', shape=input_shapes['points'])
-    features = keras.Input(name='features', shape=input_shapes['features']) if 'features' in input_shapes else None
-    mask = keras.Input(name='mask', shape=input_shapes['mask']) if 'mask' in input_shapes else None
-    outputs = _particle_net_base(points, features, mask, setting, name='ParticleNet')
-
-    return keras.Model(inputs=[points, features, mask], outputs=outputs, name='ParticleNet')
-
-
-def get_particle_net_lite(num_classes, input_shapes):
+def get_particle_net_lite_custom(num_classes, input_shapes):
     r"""ParticleNet-Lite model from `"ParticleNet: Jet Tagging via Particle Clouds"
     <https://arxiv.org/abs/1902.08570>`_ paper.
     Parameters
@@ -171,9 +139,9 @@ def get_particle_net_lite(num_classes, input_shapes):
         (3, (32, 32, 32)), # era 7 e 64
         ]
     # conv_pooling: 'average' or 'max'
-    setting.conv_pooling = 'max'
+    setting.conv_pooling = 'average'
     # fc_params: list of tuples in the format (C, drop_rate)
-    setting.fc_params = [(32, 0.2)]   # originariamente era 128
+    setting.fc_params = [(64, 0.2)]   # originariamente era 128
     setting.num_points = input_shapes['points'][0]
 
     points = keras.Input(name='points', shape=input_shapes['points'])

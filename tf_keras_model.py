@@ -183,4 +183,4 @@ def get_particle_net_lite(num_classes, input_shapes):
 
     outputs = _particle_net_base(points, features, mask, summary, setting, name='ParticleNet')
 
-    return keras.Model(inputs=[points, features, mask], outputs=outputs, name='ParticleNet')
+    return keras.Model(inputs=[points, features, mask, summary], outputs=outputs, name='ParticleNet')

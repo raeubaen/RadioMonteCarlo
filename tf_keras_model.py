@@ -77,7 +77,7 @@ def edge_conv(points, features, num_points, K, channels, with_bn=True, activatio
             return sc + fts
 
 
-def _particle_net_base(points, features=None, mask=None, setting=None, name='particle_net'):
+def _particle_net_base(points, features=None, mask=None, summary=None, setting=None, name='particle_net'):
     # points : (N, P, C_coord)
     # features:  (N, P, C_features), optional
     # mask: (N, P, 1), optinal
@@ -103,7 +103,8 @@ def _particle_net_base(points, features=None, mask=None, setting=None, name='par
         pool = tf.reduce_mean(fts, axis=1)  # (N, C)
 
         if setting.fc_params is not None:
-            x = pool
+            x = tf.concat((pool, summary))
+
             for layer_idx, layer_param in enumerate(setting.fc_params):
                 units, drop_rate = layer_param
                 x = keras.layers.Dense(units, activation='relu')(x)
@@ -178,6 +179,8 @@ def get_particle_net_lite(num_classes, input_shapes):
     points = keras.Input(name='points', shape=input_shapes['points'])
     features = keras.Input(name='features', shape=input_shapes['features']) if 'features' in input_shapes else None
     mask = keras.Input(name='mask', shape=input_shapes['mask']) if 'mask' in input_shapes else None
-    outputs = _particle_net_base(points, features, mask, setting, name='ParticleNet')
+    summary = keras.Input(name='summary', shape=(4))
+
+    outputs = _particle_net_base(points, features, mask, summary, setting, name='ParticleNet')
 
     return keras.Model(inputs=[points, features, mask], outputs=outputs, name='ParticleNet')

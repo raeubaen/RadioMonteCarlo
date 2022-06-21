@@ -108,6 +108,7 @@ def _particle_net_base(points, features=None, mask=None, summary=None, setting=N
         pool = tf.reduce_mean(fts, axis=1)  # (N, C)
 
         if setting.fc_params is not None:
+            # it was not present # -----------------------------------------------
             x = tf.concat((pool, summary), -1)
 
             for layer_idx, layer_param in enumerate(setting.fc_params):
@@ -117,7 +118,7 @@ def _particle_net_base(points, features=None, mask=None, summary=None, setting=N
                     x = keras.layers.Dropout(drop_rate)(x)
 
             # it was: # -----------------------------------------------------------
-            #out = keras.layers.Dense(setting.num_class, activation='softmax')(x)
+            # out = keras.layers.Dense(setting.num_class, activation='softmax')(x)
             out = keras.layers.Dense(1, activation='sigmoid')(x)
 
             return out  # (N, 1)
@@ -144,6 +145,8 @@ def get_particle_net_lite_custom(input_shapes):
 
     setting = _DotDict()
 
+    setting.num_points = input_shapes['points'][0]
+
     # conv_params: list of tuple in the format (K, (C1, C2, C3))
     setting.conv_params = [
         (3, (16, 16, 16)), # it was 7 and 32 # ------------------------------------
@@ -155,29 +158,15 @@ def get_particle_net_lite_custom(input_shapes):
 
     # fc_params: list of tuples in the format (C, drop_rate)
     setting.fc_params = [(64, 0.2)]   # it was 128 and 0.1 # ----------------------
-    setting.num_points = input_shapes['points'][0]
 
-
-
-    points = keras.Input(
-      name='points', shape=input_shapes['points']
-    )
-
-    features = keras.Input(
-      name='features', shape=input_shapes['features']
-    ) if 'features' in input_shapes else None
-
-    mask = keras.Input(
-      name='mask', shape=input_shapes['mask']
-    ) if 'mask' in input_shapes else None
-
-    summary = keras.Input(name='summary', shape=(4)) # it was not present # -------
-
+    points =   keras.Input(name='points', shape=input_shapes['points'])
+    features = keras.Input(name='features', shape=input_shapes['features'])
+    mask =     keras.Input(name='mask', shape=input_shapes['mask'])
+    summary =  keras.Input(name='summary', shape=(4)) # it was not present # ------
 
     outputs = _particle_net_base(
       points, features, mask, summary, setting, name='ParticleNet'
     )
-
 
     return keras.Model(
       inputs=[points, features, mask, summary],
